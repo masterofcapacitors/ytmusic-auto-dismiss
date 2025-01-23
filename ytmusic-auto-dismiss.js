@@ -125,7 +125,7 @@ function getDismissDelay(notification) {
     } else if (textContent == "added to library") {
         log("Added to library notification");
         return DISMISS_DELAY_LIBRARY;
-    }  else if (textContent == "removed from library") {
+    } else if (textContent == "removed from library") {
         log("Removed from library notification");
         return DISMISS_DELAY_LIBRARY;
     } else if (textContent.startsWith("saved to")) {
