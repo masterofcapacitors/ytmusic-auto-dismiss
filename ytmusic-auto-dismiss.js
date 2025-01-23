@@ -18,7 +18,7 @@ const DISMISS_DELAY_GENERAL = 5000;
 const DESTROY_DELAY = 2000;
 const DESTROY_DELAY_TEXT = 7000;
 
-const ENABLE_DEBUG_LOGGING = true;
+const ENABLE_DEBUG_LOGGING = false;
 
 function timeStamp() {
     const now = new Date();
