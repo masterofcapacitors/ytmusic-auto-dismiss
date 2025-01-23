@@ -2,7 +2,7 @@
 // @name         Youtube Music auto dismiss liked song notification
 // @namespace    https://github.com/masterofcapacitors/
 // @homepageURL  https://github.com/masterofcapacitors/ytmusic-auto-dismiss
-// @version      0.1
+// @version      0.2
 // @description  Automatically dismiss the liked song notification after some seconds
 // @author       tukars
 // @icon         https://music.youtube.com/favicon.ico
@@ -11,8 +11,14 @@
 // @grant        none
 // ==/UserScript==
 
-const DISMISS_DELAY = 5000;
+const DISMISS_DELAY_LIKED = 3000;
+const DISMISS_DELAY_LIBRARY = 3000;
+const DISMISS_DELAY_PLAYLIST = 5000;
+const DISMISS_DELAY_GENERAL = 5000;
 const DESTROY_DELAY = 2000;
+const DESTROY_DELAY_TEXT = 7000;
+
+const ENABLE_DEBUG_LOGGING = true;
 
 function timeStamp() {
     const now = new Date();
@@ -27,7 +33,18 @@ function timeStamp() {
 }
 
 function contextPrint(message) {
+    if (!ENABLE_DEBUG_LOGGING) {
+        return {
+            log: function(...args) {},
+            warn: function(...args) {},
+            error: function(...args) {},
+            info: function(...args) {},
+            debug: function(...args) {}
+        }
+    }
+    
     const messageTime = () => `[${message}] ${timeStamp()} -`
+    
     return {
         log: function(...args) {console.log(messageTime(), ...args)},
         warn: function(...args) {console.warn(messageTime(), ...args)},
@@ -66,6 +83,10 @@ function observeChildrenWithTags(element, config, filterTags, callback) {
     );
 }
 
+function observeAndHandle(element, tags, fun) {
+    observeChildrenWithTags(element, null, tags, nodes => nodes.forEach(node => fun(node)))
+}
+
 function dismissNotification(notification) {
     const dismissButton = notification.querySelector("#button");
     
@@ -88,26 +109,70 @@ function destroyNotification(notification) {
     notification.parentNode.removeChild(notification);
 }
 
-function handleNotification(notification) {
-    log("Notification detected.");
+function getDismissDelay(notification) {
+    const textElement = notification.querySelector("#text");
+    
+    if (!textElement) {
+        warn("Could not find text element.");
+        return;
+    }
+    
+    const textContent = textElement.textContent.toLowerCase()
+    
+    if (textContent === "saved to liked music") {
+        log("Saved to liked music notification");
+        return DISMISS_DELAY_LIKED;
+    } else if (textContent == "added to library") {
+        log("Added to library notification");
+        return DISMISS_DELAY_LIBRARY;
+    }  else if (textContent == "removed from library") {
+        log("Removed from library notification");
+        return DISMISS_DELAY_LIBRARY;
+    } else if (textContent.startsWith("saved to")) {
+        log("Added to playlist notification");
+        return DISMISS_DELAY_PLAYLIST;
+    } else if (textContent === "this track is already in the playlist") {
+        log("Already in playlist notification");
+        return DISMISS_DELAY_PLAYLIST;
+    } else {
+        log(`Text content (not yet matched): "${textContent}"`);
+        return DISMISS_DELAY_GENERAL;
+    }
+}
+
+function handleActionNotification(notification) {
+    log("Action notification detected.");
     
     setTimeout(() => {
         dismissNotification(notification);
         setTimeout(() => destroyNotification(notification), DESTROY_DELAY);
-    }, DISMISS_DELAY);
+    }, getDismissDelay(notification));
 }
+
+function handleTextNotification(notification) {
+    log("Text notification detected.");
+    
+    setTimeout(() => destroyNotification(notification), DESTROY_DELAY_TEXT);
+}
+
+
 
 (function() {
     "use strict";
     
-    const popup_container = document.getElementsByTagName("ytmusic-popup-container").item(0);
+    log("Auto dismiss is active.");
     
-    if (!popup_container) {
+    const popupContainer = document.getElementsByTagName("ytmusic-popup-container").item(0);
+    
+    if (!popupContainer) {
         warn("Could not find popup container.");
         return;
     }
     
-    observeChildrenWithTags(popup_container, null, ["ytmusic-notification-action-renderer"], 
-        notifications => notifications.forEach(notification => handleNotification(notification))
-    )
+    const actionNotificationTags = ["ytmusic-notification-action-renderer"];
+    observeAndHandle(popupContainer, actionNotificationTags, handleActionNotification);
+    
+    const textNotificationTags = ["ytmusic-notification-text-renderer"];
+    observeAndHandle(popupContainer, textNotificationTags, handleTextNotification);
+    
 })();
