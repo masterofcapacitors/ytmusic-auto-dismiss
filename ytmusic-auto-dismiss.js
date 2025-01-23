@@ -1,6 +1,7 @@
 // ==UserScript==
 // @name         Youtube Music auto dismiss liked song notification
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/masterofcapacitors/
+// @homepageURL  https://github.com/masterofcapacitors/ytmusic-auto-dismiss
 // @version      0.1
 // @description  Automatically dismiss the liked song notification after some seconds
 // @author       tukars
