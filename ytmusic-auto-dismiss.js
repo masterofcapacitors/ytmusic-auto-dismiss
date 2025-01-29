@@ -11,14 +11,14 @@
 // @grant        none
 // ==/UserScript==
 
-const DISMISS_DELAY_LIKED = 3000;
-const DISMISS_DELAY_LIBRARY = 3000;
+const DISMISS_DELAY_LIKED = 1000;
+const DISMISS_DELAY_LIBRARY = 1000;
 const DISMISS_DELAY_PLAYLIST = 5000;
 const DISMISS_DELAY_GENERAL = 5000;
 const DESTROY_DELAY = 2000;
 const DESTROY_DELAY_TEXT = 7000;
 
-const ENABLE_DEBUG_LOGGING = false;
+const ENABLE_DEBUG_LOGGING = true;
 
 function timeStamp() {
     const now = new Date();
@@ -46,7 +46,7 @@ function contextPrint(message) {
     const messageTime = () => `[${message}] ${timeStamp()} -`
     
     return {
-        log: function(...args) {console.log(messageTime(), ...args)},
+        log: function(...args) {console.debug(messageTime(), ...args)},
         warn: function(...args) {console.warn(messageTime(), ...args)},
         error: function(...args) {console.error(messageTime(), ...args)},
         info: function(...args) {console.info(messageTime(), ...args)},
@@ -54,7 +54,7 @@ function contextPrint(message) {
     }
 }
 
-const {log, warn, error} = contextPrint("YT Music auto dismiss");
+const {log, warn, error, info, debug} = contextPrint("YT Music auto dismiss");
 
 function observeChildren(element, config, callback) {
     const observer = new MutationObserver((mutationsList) => {
@@ -95,8 +95,16 @@ function dismissNotification(notification) {
         return;
     }
     
-    log("Dismissing notification.");
+    debug("Dismissing notification.");
+    
+    const activeElement = document.activeElement;
+    debug("Element in focus", activeElement);
     dismissButton.click();
+
+    if (activeElement && activeElement.focus) {
+        debug("Restoring focus to element", activeElement);
+        activeElement.focus();
+    }
 }
 
 function destroyNotification(notification) {
@@ -105,7 +113,7 @@ function destroyNotification(notification) {
         return;
     }
     
-    log("Destroying notification element.");
+    debug("Destroying notification element.");
     notification.parentNode.removeChild(notification);
 }
 
@@ -120,37 +128,37 @@ function getDismissDelay(notification) {
     const textContent = textElement.textContent.toLowerCase()
     
     if (textContent === "saved to liked music") {
-        log("Saved to liked music notification");
+        debug("Saved to liked music notification");
         return DISMISS_DELAY_LIKED;
     } else if (textContent == "added to library") {
-        log("Added to library notification");
+        debug("Added to library notification");
         return DISMISS_DELAY_LIBRARY;
     } else if (textContent == "removed from library") {
-        log("Removed from library notification");
+        debug("Removed from library notification");
         return DISMISS_DELAY_LIBRARY;
     } else if (textContent.startsWith("saved to")) {
-        log("Added to playlist notification");
+        debug("Added to playlist notification");
         return DISMISS_DELAY_PLAYLIST;
     } else if (textContent === "this track is already in the playlist") {
-        log("Already in playlist notification");
+        debug("Already in playlist notification");
         return DISMISS_DELAY_PLAYLIST;
     } else {
-        log(`Text content (not yet matched): "${textContent}"`);
+        debug(`Text content (not yet matched): "${textContent}"`);
         return DISMISS_DELAY_GENERAL;
     }
 }
 
 function handleActionNotification(notification) {
-    log("Action notification detected.");
+    debug("Action notification detected.");
     
     setTimeout(() => {
         dismissNotification(notification);
-        setTimeout(() => destroyNotification(notification), DESTROY_DELAY);
+        setTimeout(() => destroyNotification(notification), DESTROY_DELAY, notification);
     }, getDismissDelay(notification));
 }
 
 function handleTextNotification(notification) {
-    log("Text notification detected.");
+    debug("Text notification detected.");
     
     setTimeout(() => destroyNotification(notification), DESTROY_DELAY_TEXT);
 }
@@ -160,7 +168,7 @@ function handleTextNotification(notification) {
 (function() {
     "use strict";
     
-    log("Auto dismiss is active.");
+    debug("Auto dismiss is active.");
     
     const popupContainer = document.getElementsByTagName("ytmusic-popup-container").item(0);
     
