@@ -2,7 +2,7 @@
 // @name         Youtube Music auto dismiss liked song notification
 // @namespace    https://github.com/masterofcapacitors/
 // @homepageURL  https://github.com/masterofcapacitors/ytmusic-auto-dismiss
-// @version      0.2
+// @version      0.3
 // @description  Automatically dismiss the liked song notification after some seconds
 // @author       tukars
 // @icon         https://music.youtube.com/favicon.ico
@@ -28,7 +28,7 @@ function timeStamp() {
     const minutes = pad(now.getMinutes(), 2);
     const seconds = pad(now.getSeconds(), 2);
     const milliseconds = pad(now.getMilliseconds(), 3);
-
+    
     return `${hours}:${minutes}:${seconds}.${milliseconds}`;
 }
 
@@ -93,8 +93,9 @@ function dismissNotification(notification) {
     
     const activeElement = document.activeElement;
     debug("Element in focus", activeElement);
+    
     dismissButton.click();
-
+    
     if (activeElement && activeElement.focus) {
         debug("Restoring focus to element", activeElement);
         activeElement.focus();
