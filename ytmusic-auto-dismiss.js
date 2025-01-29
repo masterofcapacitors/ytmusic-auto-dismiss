@@ -1,5 +1,6 @@
 // ==UserScript==
 // @name         Youtube Music auto dismiss liked song notification
+// @license      MIT
 // @namespace    https://github.com/thecodeisLOVE
 // @homepageURL  https://github.com/thecodeisLOVE/ytmusic-auto-dismiss
 // @version      0.3
