@@ -33,25 +33,17 @@ function timeStamp() {
 }
 
 function contextPrint(message) {
+    const log = function(...args) {console.log(messageTime(), ...args)};
+    const warn = function(...args) {console.warn(messageTime(), ...args)};
+    const error = function(...args) {console.error(messageTime(), ...args)};
+    const info = function(...args) {console.info(messageTime(), ...args)};
+    
+    var debug = function(...args) {console.debug(messageTime(), ...args)};
     if (!ENABLE_DEBUG_LOGGING) {
-        return {
-            log: function(...args) {},
-            warn: function(...args) {},
-            error: function(...args) {},
-            info: function(...args) {},
-            debug: function(...args) {}
-        }
+        debug = function() {};
     }
     
-    const messageTime = () => `[${message}] ${timeStamp()} -`
-    
-    return {
-        log: function(...args) {console.debug(messageTime(), ...args)},
-        warn: function(...args) {console.warn(messageTime(), ...args)},
-        error: function(...args) {console.error(messageTime(), ...args)},
-        info: function(...args) {console.info(messageTime(), ...args)},
-        debug: function(...args) {console.debug(messageTime(), ...args)}
-    }
+    return {log, warn, error, info, debug};
 }
 
 const {log, warn, error, info, debug} = contextPrint("YT Music auto dismiss");
