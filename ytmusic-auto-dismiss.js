@@ -33,6 +33,8 @@ function timeStamp() {
 }
 
 function contextPrint(message) {
+    const messageTime = () => `[${message}] ${timeStamp()} -`
+    
     const log = function(...args) {console.log(messageTime(), ...args)};
     const warn = function(...args) {console.warn(messageTime(), ...args)};
     const error = function(...args) {console.error(messageTime(), ...args)};
